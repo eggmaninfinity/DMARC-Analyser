@@ -3,6 +3,7 @@ import gzip
 import zipfile
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from dependencies import folder_path, scanned_path
 
 RED = "\033[31m"
 GREEN = "\033[32m"
@@ -10,9 +11,6 @@ YELLOW = "\033[33m"
 ORANGE = "\033[38;5;208m"
 RESET = "\033[0m"
 
-# Change this to the folder where you saved your attachments
-folder_path = '/Users/peaknuckle/Documents/code/JA-DMARC-searcher/DMARCreports'
-scanned_path = '/Users/peaknuckle/Documents/code/JA-DMARC-searcher/scanned_reports.txt'
 
 if not os.path.exists(scanned_path):
     # Ensure the directory exists
