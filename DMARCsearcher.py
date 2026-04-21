@@ -5,8 +5,9 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from dependencies import folder_path, scanned_path
 
-# TODO: refactor spf/dkim field checks into single loop that buuilds dict with all info
-#       fix history overwriting issue
+# TODO: refactor script in __main__ idiom - hard to parse atm
+#       refactor spf/dkim field checks into single loop that builds dict with all info
+#       fix history overwriting issue   
 
 RED = "\033[31m"
 GREEN = "\033[32m"
@@ -135,7 +136,7 @@ for filename in os.listdir(folder_path):
                 append_to_history(filename)
 
 if scanned:
-    with open(scanned_path, 'w') as file:
+    with open(scanned_path, 'a') as file:
         for entry in scanned:
             file.write(f'{entry}\n')
 
