@@ -5,6 +5,9 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from dependencies import folder_path, scanned_path
 
+# TODO: refactor spf/dkim field checks into single loop that buuilds dict with all info
+#       fix history overwriting issue
+
 RED = "\033[31m"
 GREEN = "\033[32m"
 YELLOW = "\033[33m"
