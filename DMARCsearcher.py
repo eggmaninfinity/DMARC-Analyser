@@ -15,21 +15,62 @@ YELLOW = "\033[33m"
 ORANGE = "\033[38;5;208m"
 RESET = "\033[0m"
 
-
-if not os.path.exists(scanned_path):
-    # Ensure the directory exists
-    os.makedirs(os.path.dirname(scanned_path), exist_ok=True)
-    
-    # Create the empty file
-    with open(scanned_path, 'w') as f:
-        pass 
-    print(f"Created {YELLOW}new{RESET} history file at:\n{ORANGE}{scanned_path}{RESET}")
-
-
 scanned = []
 count = 0
 SPFfails = 0
 DKIMfails = 0
+
+def main():
+
+    if not os.path.exists(scanned_path):
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(scanned_path), exist_ok=True)
+        
+        # Create the empty file
+        with open(scanned_path, 'w') as f:
+            pass 
+        print(f"Created {YELLOW}new{RESET} history file at:\n{ORANGE}{scanned_path}{RESET}")
+
+    history = load_history()
+
+    for filename in os.listdir(folder_path):
+        global count
+        file_path = os.path.join(folder_path, filename)
+        
+        
+        if filename not in history:
+            count += 1
+            
+            # Handle .gz files
+            if filename.endswith('.gz'):
+                with gzip.open(file_path, 'rb') as f:
+                    parse_dmarc_xml(f.read(), filename)
+                    append_to_history(filename)
+                
+                    
+            # Handle .zip files
+            elif filename.endswith('.zip'):
+                with zipfile.ZipFile(file_path, 'r') as z:
+                    for xml_name in z.namelist():
+                        with z.open(xml_name) as f:
+                            parse_dmarc_xml(f.read(), filename)
+                            append_to_history(filename)
+                            
+            # Handle raw .xml files
+            elif filename.endswith('.xml'):
+                with open(file_path, 'rb') as f:
+                    parse_dmarc_xml(f.read(), filename)
+                    append_to_history(filename)
+
+    if scanned:
+        with open(scanned_path, 'a') as file:
+            for entry in scanned:
+                file.write(f'{entry}\n')
+
+    print(f'\nAll Done!\n{GREEN}{count}{RESET} DMARC reports scanned\n{RED}{SPFfails}{RESET} SPF issues detected\n{RED}{DKIMfails}{RESET} DKIM issues detected\n')
+
+
+    
 
 def load_history():
     with open(scanned_path, 'r') as history:
@@ -105,39 +146,8 @@ def parse_dmarc_xml(file_content, filename):
 def append_to_history(filename):
     scanned.append(filename)
 
-# Process files in the folder
-for filename in os.listdir(folder_path):
-    file_path = os.path.join(folder_path, filename)
-    
-    history = load_history()
-    
-    if filename not in history:
-        count += 1
-        
-        # Handle .gz files
-        if filename.endswith('.gz'):
-            with gzip.open(file_path, 'rb') as f:
-                parse_dmarc_xml(f.read(), filename)
-                append_to_history(filename)
-            
-                
-        # Handle .zip files
-        elif filename.endswith('.zip'):
-            with zipfile.ZipFile(file_path, 'r') as z:
-                for xml_name in z.namelist():
-                    with z.open(xml_name) as f:
-                        parse_dmarc_xml(f.read(), filename)
-                        append_to_history(filename)
-                        
-        # Handle raw .xml files
-        elif filename.endswith('.xml'):
-            with open(file_path, 'rb') as f:
-                parse_dmarc_xml(f.read(), filename)
-                append_to_history(filename)
 
-if scanned:
-    with open(scanned_path, 'a') as file:
-        for entry in scanned:
-            file.write(f'{entry}\n')
+if __name__ == "__main__":
+    main()
 
-print(f'\nAll Done!\n{GREEN}{count}{RESET} DMARC reports scanned\n{RED}{SPFfails}{RESET} SPF issues detected\n{RED}{DKIMfails}{RESET} DKIM issues detected\n')
+
